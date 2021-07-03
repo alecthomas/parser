@@ -52,7 +52,7 @@ func (g *generatorContext) parseType(t reflect.Type) (_ node, returnedError erro
 		if slexer.NumField() == 0 {
 			return nil, fmt.Errorf("can not parse into empty struct %s", t)
 		}
-		defer decorate(&returnedError, func() string { return slexer.Field().Name })
+		defer decorate(&returnedError, nil, func() string { return slexer.Field().Name })
 		e, err := g.parseDisjunction(slexer)
 		if err != nil {
 			return nil, err

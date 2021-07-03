@@ -122,7 +122,7 @@ func collectFieldIndexes(s reflect.Type) (out [][]int, err error) {
 	if s.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("expected a struct but got %q", s)
 	}
-	defer decorate(&err, s.String)
+	defer decorate(&err, nil, s.String)
 	for i := 0; i < s.NumField(); i++ {
 		f := s.Field(i)
 		switch {

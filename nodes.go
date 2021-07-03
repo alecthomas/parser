@@ -40,15 +40,25 @@ type node interface {
 	fmt.GoStringer
 }
 
-func decorate(err *error, name func() string) {
+func nearestPos(tokens []lexer.Token) *lexer.Position {
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	return &tokens[0].Pos
+}
+
+func decorate(err *error, pos *lexer.Position, name func() string) {
 	if *err == nil {
 		return
 	}
-	if perr, ok := (*err).(Error); ok {
-		*err = Errorf(perr.Position(), "%s: %s", name(), perr.Message())
-	} else {
-		*err = &parseError{Msg: fmt.Sprintf("%s: %s", name(), *err)}
+
+	if pos == nil {
+		*err = fmt.Errorf("%s: %w", name(), *err)
+		return
 	}
+
+	*err = Wrapf(*pos, *err, "%s", name())
 }
 
 // A node that proxies to an implementation that implements the Parseable interface.
@@ -604,7 +614,7 @@ func sizeOfKind(kind reflect.Kind) int {
 // For all other types, an attempt will be made to convert the string to the corresponding
 // type (int, float32, etc.).
 func setField(tokens []lexer.Token, strct reflect.Value, field structLexerField, fieldValue []reflect.Value) (err error) { // nolint: gocognit
-	defer decorate(&err, func() string { return strct.Type().Name() + "." + field.Name })
+	defer decorate(&err, nearestPos(tokens), func() string { return strct.Type().Name() + "." + field.Name })
 
 	f := strct.FieldByIndex(field.Index)
 
